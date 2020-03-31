@@ -1,0 +1,1 @@
+docker run -d -ti --rm --name 2pro_cqhttp -v /home/2coolq:/home/user/coolq -p 81:9000 -p 5701:5701 -e CQHTTP_POST_URL=http://172.17.0.1:8081 -e CQHTTP_SERVE_DATA_FILES=yes -e COOLQ_URL=https://dlsec.cqp.me/cqp-tuling richardchien/cqhttp:latest

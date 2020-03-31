@@ -1,0 +1,11 @@
+ujson module not found, using json
+1
+[2020-03-11 13:04:07,176 nonebot] INFO: Succeeded to import "awesome.plugins.scheduler"
+[2020-03-11 13:04:07,177 nonebot] INFO: Succeeded to import "awesome.plugins.tencent_talk"
+[2020-03-11 13:04:07,660 nonebot] INFO: Succeeded to import "awesome.plugins.w"
+[2020-03-11 13:04:07,661 nonebot] INFO: Running on 172.17.0.1:8080
+Running on https://172.17.0.1:8080 (CTRL + C to quit)
+[2020-03-11 13:04:07,661] ASGI Framework Lifespan error, continuing without Lifespan support
+[2020-03-11 13:04:07,662 nonebot] INFO: Scheduler started
+[2020-03-11 13:04:10,312] 172.17.0.2:54211 GET /ws/api/ 1.1 101 - 1112
+[2020-03-11 13:04:10,353] 172.17.0.2:33393 GET /ws/event/ 1.1 101 - 708
