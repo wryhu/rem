@@ -2222,7 +2222,7 @@ async def tuling(session: CommandSession):
                 insert_db_score(user_id,group_id,score)
             jinbi = [
                     #'改名,换头,点赞,抽卡',
-                    #'蕾姆永久测试群\n949377627',
+                    '蕾姆永久测试群\n949377627',
                     '输入蕾的教学可以教蕾姆说话',
                     ]
             count = select_sign_count(user_id,group_id)[0]
