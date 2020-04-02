@@ -1861,6 +1861,8 @@ async def fan(session: CommandSession):
             #'★点赞：最多点10个赞',
             '★抽卡：珍爱生命远离抽卡',
             '★签到排行：群内签到天数排行',
+            '★打劫@某人：有几率成功',
+            '★转账@某人：py交易',
             '★富人榜、穷人榜：圣金币排行',
             '★点菜 菜名：饿的时候望梅止渴',
             '————————————',
@@ -2208,13 +2210,13 @@ async def tuling(session: CommandSession):
         if sign_state == 0:
             r = random.choice([0,0,0,0,0,0,0,1])
             if r:
-                score = 50
+                score = 30
             else:
                 score = 10
             update_db_sign(uuid)
             if p:
                 if p[1] < 0:
-                    score = 80
+                    score = 50
                 tscore = score+p[1]
                 update_db_score(tscore, p[0])
             else:
@@ -2485,13 +2487,13 @@ async def tuling(session: CommandSession):
     jiahu[int(qq)] = int(count)
     await session.send('恭喜%s\n获得莱茵哈鲁特的加护！\n接下来的十次内的抽卡\n获得金币的几率大大提高！' % nickname)
 
-@on_command('道具', aliases=('道具'),only_to_me=False)
-async def huantou(session: CommandSession):
-    msg = [
-        '莱茵哈鲁特的加护(5块)：\n接下来的十次抽卡强运加持，总共可获得几百至上千不等的圣金币，并且无视现有金币余额负数，强制抽卡。'
-    ]
-    t = '\n' + '可找主人736209298购买，欧洲人可以无视'
-    await session.send('\n'.join(msg) + t)
+#@on_command('道具', aliases=('道具'),only_to_me=False)
+#async def huantou(session: CommandSession):
+#    msg = [
+#        '莱茵哈鲁特的加护(5块)：\n接下来的十次抽卡强运加持，总共可获得几百至上千不等的圣金币，并且无视现有金币余额负数，强制抽卡。'
+#    ]
+#    t = '\n' + '可找主人736209298购买，欧洲人可以无视'
+#    await session.send('\n'.join(msg) + t)
 
 @on_command('qq', only_to_me=False)
 async def huantou(session: CommandSession):
@@ -2502,8 +2504,18 @@ async def huantou(session: CommandSession):
             msg = '教学失败，需要加表情包图片哦，让蕾姆可爱起来吧！'
             await session.send(msg)
             return
+        for i in session.ctx['message']:
+            if i['type'] == 'image':
+                pic = i['data']['url']
+                break
+        img = re.findall(r'\[CQ:image,file=(.+?)\]', rm)[0]
+        img_data = requests.get(pic).content
+        with open('/home/pro_coolq/data/image/biaoqing/%s' % img,'wb') as f:
+            f.write(img_data)
+        with open('/home/2coolq/data/image/biaoqing/%s' % img,'wb') as f:
+            f.write(img_data)
         k = rm.split('aa')[0].replace('qq','').strip()
-        v = rm.split('aa')[-1].strip()
+        v = rm.split('aa')[-1].strip().replace(img,'biaoqing/' + img)
         ret = rd.hget('rem2',k)
         if ret:
             v = ret + '|' + v
@@ -2524,7 +2536,7 @@ async def huantou(session: CommandSession):
         rd.hdel('rem2',k)
     with open('/home/rem','w') as f:
         f.write(k+'|'+v1)
-    await session.send(k+'|'+v)
+    await session.send(k+'|'+v1)
 
 @on_command('通过', only_to_me=False)
 async def huantou(session: CommandSession):
@@ -2646,22 +2658,20 @@ async def fan(session: CommandSession):
                 return
             else:
                 dajie[user_id] = [cc,c[1]+1]
-
-            #await session.send('今日抽卡次数已满，请明天再来吧')
         else:
             c = [cc,1]
             dajie[user_id] = c
 
     qq = re.findall(r'\[CQ:at,qq=(\d+?)\]',session.ctx['raw_message'])[0]
-    score = random.randrange(50,101)
+    score = random.randrange(50,150)
     if int(qq) == session.ctx['user_id']:
         return
     if random.choice([0,1]):
         p2 = select_db_score(session.ctx['user_id'],session.ctx['group_id'])
         pcount = p2[1]
-        if pcount < 100:
-            await session.send('您的余额为%s圣金币\n不足100无法使用打劫' % (p2[1]))
-            return
+        #if pcount < 100:
+        #    await session.send('您的余额为%s圣金币\n不足100无法使用打劫' % (p2[1]))
+        #    return
         p = select_db_score(qq,session.ctx['group_id'])
         bot = nonebot.get_bot()
         info = await bot.get_group_member_info(group_id=session.ctx['group_id'],user_id=qq)
@@ -2669,13 +2679,28 @@ async def fan(session: CommandSession):
         nickname = nickname if nickname else info.get('nickname')
         pcount1 = p[1]
         if pcount1 < 100:
-            await session.send('%s 余额为%s圣金币\n他已经这么惨了换个人劫吧' % (nickname, pcount1))
+            await session.send('%s 余额为%s圣金币\n打劫穷人天理难容，明天再来吧' % (nickname, pcount1))
             return
+        count = rd.hget('fantan',qq)
+        if count:
+            cc = int(count) - 1
+            if cc == 0:
+                rd.hdel('fantan',qq)
+            else:
+                rd.hset('fantan',qq,cc)
+
+            tscore = pcount1 + int(score)
+            update_db_score(tscore, p[0])
+            tscore2 = pcount - int(score)
+            update_db_score(tscore2, p2[0])
+            await session.send('打劫失败！对方持有反弹卡\n你被反打劫%s圣金币！\n您的余额为%s圣金币\n%s 余额%s圣金币' % (score,tscore2,nickname, tscore))
+            return
+
         tscore = pcount1 - int(score)
         update_db_score(tscore, p[0])
-        tscore2 = p2[1] + int(score)
+        tscore2 = pcount + int(score)
         update_db_score(tscore2, p2[0])
-        
+
         await session.send('打劫成功%s圣金币！\n您的余额为%s圣金币\n%s 余额%s圣金币' % (score,tscore2,nickname, tscore))
     else:
         await session.send('打劫失败，另外打劫一天一次请注意')
@@ -2707,7 +2732,7 @@ async def huantou(session: CommandSession):
     if j == 0 and s == 0:
         await session.send(msg)
         return
-    ds = [1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,5]
+    ds = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,5]
     c = ck.get(user_id,'')
     cc = datetime.now().strftime('%Y-%m-%d')
     if not c:
@@ -2728,14 +2753,6 @@ async def huantou(session: CommandSession):
     #    await session.send('真的要继续吗？下面可能是万丈深渊哦')
     #    return
 
-    if score > 333:
-        pattern = [1]
-    else:
-        pattern = [1,2]
-    if c[1] >= 100:
-        ds = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,4,4,4,5]
-    for i in range(max(c[1],8)):
-        ds.append(random.choice(pattern))
     if s:
         jiahu[user_id] = s-1
         ds = [3,4,5,5,5]
@@ -2805,7 +2822,8 @@ async def fan(session: CommandSession):
     if session.ctx['raw_message'].strip() == '商店':
         msg = [
             '★加护(5块/1个)：\n输入"使用加护"，接下来的十次抽卡强运加持，总共可获得几百至上千不等的圣金币，并且无视限制，强制抽卡。',
-            '★死亡回溯(5块/1个)：\n先输入"存档"，记录现有圣金币数a，想回档的时候输入"使用死亡回溯"，即可回档至a圣金币。'
+            '★死亡回溯(5块/1个)：\n先输入"存档"，记录现有圣金币数a，想回档的时候输入"使用死亡回溯"，即可回档至a圣金币。',
+            '★反弹卡(5块/10次)：\n被动道具，购买后会存入背包，当有人打劫你成功时，会反打劫对方相同数量的圣金币。'
         ]
         t = '\n' + '可找主人736209298购买，资金用于服务器支持等费用'
         await session.send('\n'.join(msg) + t)
@@ -2822,7 +2840,7 @@ async def fan(session: CommandSession):
             else:
                 count = int(count)
             rd.hset('jiahu',qq,count)
-            await session.send('恭喜%s获得莱茵哈鲁特的加护，可输入我的道具查看' % qq)
+            await session.send('恭喜%s获得莱茵哈鲁特的加护，可输入背包查看' % qq)
 
         elif session.ctx['raw_message'].startswith('赠送死亡回溯'):
             qq, count = session.ctx['raw_message'].replace('赠送死亡回溯','').strip().split(' ')
@@ -2832,11 +2850,21 @@ async def fan(session: CommandSession):
             else:
                 count = int(count)
             rd.hset('siwang',qq,count)
-            await session.send('恭喜%s获得死亡回溯，可输入我的道具查看' % qq)
+            await session.send('恭喜%s获得死亡回溯，可输入背包查看' % qq)
 
-@on_command('我的',only_to_me=False)
+        elif session.ctx['raw_message'].startswith('赠送反弹卡'):
+            qq, count = session.ctx['raw_message'].replace('赠送反弹卡','').strip().split(' ')
+            ret = rd.hget('fantan',qq)
+            if ret:
+                count = int(ret) + int(count)
+            else:
+                count = int(count)
+            rd.hset('fantan',qq,count)
+            await session.send('恭喜%s获得反弹卡%s张，可输入背包查看' % (qq,count))
+
+@on_command('背包',only_to_me=False)
 async def fan(session: CommandSession):
-    if '我的道具' in session.ctx['raw_message']:
+    if '背包' in session.ctx['raw_message']:
         qq = session.ctx['user_id']
         msg = '您现有的道具如下：'
         if str(qq) in rd.hkeys('jiahu'):
@@ -2845,6 +2873,9 @@ async def fan(session: CommandSession):
         if str(qq) in rd.hkeys('siwang'):
             c = rd.hget('siwang',qq)
             msg += '\n' + '死亡回溯（%s个）' % c
+        if str(qq) in rd.hkeys('fantan'):
+            c = rd.hget('fantan',qq)
+            msg += '\n' + '反弹卡（%s个）' % c
         if msg == '您现有的道具如下：':
             return
         rems = rd.hkeys('siwang')
@@ -2892,4 +2923,3 @@ async def fan(session: CommandSession):
             update_db_score(score,cid)
             rd.hdel('cundang',qq)
             await session.send('触发死亡回溯成功！\n已成功回档至%s圣金币！' % score)
-
