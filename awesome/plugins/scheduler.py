@@ -105,7 +105,7 @@ def select_db3():
         print(e)
 
 async def send_msg(msg,pic=None):
-    bili_list = [333269216,630484590,1065415447,949377627,1035554908]
+    bili_list = [938776275,333269216,630484590,1065415447,949377627,1035554908]
     bot = nonebot.get_bot()
     # await bot.send_group_msg(group_id=949377627, message=msg)
     glist = await bot.get_group_list()

@@ -275,7 +275,7 @@ async def mingling(session: CommandSession):
                 '———蕾姆食用方法———',
                 '★蕾の简介★   ★蕾の人设★',
                 '★蕾の功能★   ★蕾の娱乐★',
-                '★蕾の群管★   ★蕾の被动★',
+                '★蕾の群管★   ★蕾の卡牌★',
                 '★蕾の主人★   ★蕾の教学★',
                 '★蕾の活跃★   ★蕾のbili★',
                 '★例如输入：蕾的功能★',
@@ -659,7 +659,7 @@ async def qiming(session: CommandSession):
     else:
         qq = session.ctx.get('self_id')
     bot = nonebot.get_bot()
-    await bot.set_group_card(group_id=session.ctx.get('group_id'),user_id=qq,card='[CQ:emoji,id=128156][CQ:emoji,id=128155]%s[CQ:emoji,id=10084][CQ:emoji,id=128153]' % arg_text)
+    await bot.set_group_card(group_id=session.ctx.get('group_id'),user_id=qq,card=arg_text)
     await session.send(msg)
     info = await bot.get_group_member_info(group_id=session.ctx['group_id'],user_id=session.ctx['user_id'])
     nickname = info.get('card')
@@ -1288,7 +1288,7 @@ async def tuling(session: CommandSession):
     #if session.ctx['group_id'] not in [482261061]:
     #return
     role = session.ctx['sender']['role']
-    if role == 'member':
+    if role == 'member'and session.ctx['user_id'] != 736209298:
         await session.send('暂时只能管理员使用，请见谅！')
         return
 
@@ -1764,7 +1764,7 @@ async def fan(session: CommandSession):
 @on_command('雷姆', aliases=('蕾姆','蕾蕾',),only_to_me=False)
 async def fan(session: CommandSession):
     role = session.ctx['sender']['role']
-    if role == 'member':
+    if role == 'member' and session.ctx['user_id'] != 736209298:
         return
     dir_list = os.listdir('/home/pro_coolq/data/record/leimu')
     file = 'leimu/' + random.choice(dir_list)
@@ -1806,8 +1806,6 @@ async def fan(session: CommandSession):
             '★鸡汤：随机推送鸡汤？',
             '★一言：随机推送acg相关名言',
             '★历史上的今天：字面意思',
-            '★签到：可以获得圣金币',
-            '★转账@某人10：转给别人金币',
             '★改名 名字：可以给蕾姆改名哦',
             '★换牌：随机更换蕾姆现有头衔',
             '★换头：随机更换蕾姆现有头像',
@@ -1816,6 +1814,8 @@ async def fan(session: CommandSession):
             '★搜图+p站图片,搜索p站信息',
             '★鉴黄+图片(有频率限制)',
             '★识别+图片,识别文字',
+            '★解析b站视频链接的具体信息',
+            '★及时推送b站番剧更新信息',
             '————————————',
         ]
 
@@ -1858,12 +1858,8 @@ async def fan(session: CommandSession):
             '★头像男、女、动漫：推送头像',
             '★抽象 内容：转换抽象文字',
             '★短信 内容：手机短信图片',
-            #'★点赞：最多点10个赞',
-            '★抽卡：珍爱生命远离抽卡',
+            '★签到：可以获得圣金币',
             '★签到排行：群内签到天数排行',
-            '★打劫@某人：有几率成功',
-            '★转账@某人：py交易',
-            '★富人榜、穷人榜：圣金币排行',
             '★点菜 菜名：饿的时候望梅止渴',
             '————————————',
         ]
@@ -1879,13 +1875,19 @@ async def fan(session: CommandSession):
             '★排行3：查b站近期上线播放量前10',
             '————————————',
         ]
-    elif '被动' in arg:
+    elif '卡牌' in arg:
         b = [
-            '————蕾の被动————',
-            '★聊天支持科普、笑话等小功能',
-            '★进群欢迎：文字、语音、图片',
-            '★解析b站视频链接的具体信息',
-            '★及时推送b站番剧更新信息',
+            '————蕾の卡牌————',
+            '★商店：查看道具说明',
+            '★抽卡：暂定每天40次',
+            '★十连抽：考验欧气的时刻到了',
+            '★打劫@某人：暂定每天两次',
+            '★转账@某人：py交易',
+            '★富豪榜、负豪榜：圣金币排行',
+            '★关押时长：自己的出狱时间',
+            '★背包：查看自己拥有的道具',
+            '★赠送保释卡@张三1，可以赠送道具',
+            '★讨伐白鲸：消耗100圣金币',
             '————————————',
         ]
     elif '主人' in arg:
@@ -2224,8 +2226,8 @@ async def tuling(session: CommandSession):
                 insert_db_score(user_id,group_id,score)
             jinbi = [
                     #'改名,换头,点赞,抽卡',
-                    '蕾姆永久测试群\n949377627',
-                    '输入蕾的教学可以教蕾姆说话',
+                    '背包里的道具可以赠送啦',
+                    '格式：赠送加护@某人3',
                     ]
             count = select_sign_count(user_id,group_id)[0]
             if score != 10:
@@ -2258,39 +2260,39 @@ async def tuling(session: CommandSession):
                     msg += '\n%s、%s：%s天' % (c,nickname,count)
         await session.send(msg)
 
-@on_command('点赞', only_to_me=False)
-async def jinyan(session: CommandSession):
-    await session.send('此功能暂时停止使用，请见谅')
-    return
-    if session.ctx.get('group_id') in [875164857,686950644,736742903]: 
-        return
-    if session.ctx['raw_message'] == '点赞':
-        j = 0
-        user_id = session.ctx['user_id']
-        group_id = session.ctx['group_id']
-        if session.ctx['user_id'] != 736209298:
-            p = select_db_score(user_id,group_id)
-            if p:
-                score = p[1]
-                if score >=10:
-                    tscore = score-10
-                    update_db_score(tscore, p[0])
-                    msg = '点赞成功，已点满10个\n消耗10圣金币\n剩余：%s圣金币' % tscore
-                    j = 1
-                else:
-                    msg = '点赞失败\n圣金币不足\n剩余：%s圣金币' % score
-            else:
-                msg = '点赞失败\n圣金币为不足\n可以签到获得哦'
-        else:
-            msg = '点赞成功，欧尼酱~'
-            j = 1
-        if j == 0:
-            await session.send(msg)
-            return
-        msg1 = session.ctx['raw_message'].replace('头衔','').strip()
-        bot = nonebot.get_bot()
-        await bot.send_like(user_id=session.ctx['user_id'],times=10)
-        await session.send(msg)
+#@on_command('i点赞', only_to_me=False)
+#async def jinyan(session: CommandSession):
+#    await session.send('此功能暂时停止使用，请见谅')
+#    return
+#    if session.ctx.get('group_id') in [875164857,686950644,736742903]: 
+#        return
+#    if session.ctx['raw_message'] == '点赞':
+#        j = 0
+#        user_id = session.ctx['user_id']
+#        group_id = session.ctx['group_id']
+#        if session.ctx['user_id'] != 736209298:
+#            p = select_db_score(user_id,group_id)
+#            if p:
+#                score = p[1]
+#                if score >=10:
+#                    tscore = score-10
+#                    update_db_score(tscore, p[0])
+#                    msg = '点赞成功，已点满10个\n消耗10圣金币\n剩余：%s圣金币' % tscore
+#                    j = 1
+#                else:
+#                    msg = '点赞失败\n圣金币不足\n剩余：%s圣金币' % score
+#            else:
+#                msg = '点赞失败\n圣金币为不足\n可以签到获得哦'
+#        else:
+#            msg = '点赞成功，欧尼酱~'
+#            j = 1
+#        if j == 0:
+#            await session.send(msg)
+#            return
+#        msg1 = session.ctx['raw_message'].replace('头衔','').strip()
+#        bot = nonebot.get_bot()
+#        await bot.send_like(user_id=session.ctx['user_id'],times=10)
+#        await session.send(msg)
 
 @on_command('充值', aliases=('充值'),only_to_me=False)
 async def fan(session: CommandSession):
@@ -2597,7 +2599,7 @@ async def huantou(session: CommandSession):
         s = jiahu.get(user_id,0)
         if s:
             jiahu[user_id] = s-1
-            ds = ['a10',10,50,50,5,5,5,5]
+            ds = [10,50,50,5,5,5,5]
             if tscore <= 800 and i==9:
                 ds = [399]
         else:
@@ -2606,7 +2608,7 @@ async def huantou(session: CommandSession):
             elif c[1] >= 200:
                 ds = ['a30','a30','a30','a30','a30','a10','a10','a10','a30','a10','a30','a30','a30','a30','a50','a50','a50','a50','a50','a30','a50','a50','a50','a50','a50',10,10,10,10,10,10,10,50,50,50,50]
             else:
-                ds = ['a10','a10','a10','a30','a30','a30','a30','a30','a30','a30','a30','a30','a30','a50','a50','a50','a30','a50','a50','a50','a50','a50',10,10,10,10,10,10,10,50,50,50,50,5,100]
+                ds = ['a30','a30','a50','a50','a30','a30','a50','a50','a10','a10','a30','a30','a30','a30','a30','a30','a30','a30','a30','a50','a50','a50','a50','a50',10,10,10,10,10,10,10,50,50,50,50,5,100]
         
         if tscore >= 1200:
             ds = ['a10','a10','a10','a30','a30','a30','a30','a30','a30','a30','a30','a30','a30','a50','a50','a50','a50','a50','a30','a50','a50','a50','a50','a50',10,10,10,10,10,10,10,50,50,50,50]
@@ -2636,6 +2638,7 @@ async def huantou(session: CommandSession):
         result.paste(ims[i+5], box=(i * width, height))
     shilian_name = str(tscore).replace('-','a')
     result.save('/home/pro_coolq/data/image/re0/shilian/%s.png' % shilian_name)
+    result.save('/home/2coolq/data/image/re0/shilian/%s.png' % shilian_name)
     if tscore > 0:
         msg = '恭喜[CQ:face,id=99]本次十连\n奖励%s圣金币\n总计：%s圣金币' % (tscore, score + tscore)
     else:
@@ -2643,30 +2646,44 @@ async def huantou(session: CommandSession):
     update_db_score(score + tscore, p[0])
     await session.send('[CQ:image,file=re0/shilian/%s.png]%s' % (shilian_name, msg))
 
-dajie = {}
+dajie={}
 @on_command('打劫',only_to_me=False)
 async def fan(session: CommandSession):
     user_id = session.ctx['user_id']
-    c = dajie.get(user_id,'')
-    cc = datetime.now().strftime('%Y-%m-%d')
-    if not c:
-        c = [cc,1]
-        dajie[user_id] = c
-    else:
-        if c[0] == cc:
-            if c[1] >= 1 and user_id != 736209298:
-                return
-            else:
-                dajie[user_id] = [cc,c[1]+1]
-        else:
-            c = [cc,1]
-            dajie[user_id] = c
-
+    gid = session.ctx['group_id']
     qq = re.findall(r'\[CQ:at,qq=(\d+?)\]',session.ctx['raw_message'])[0]
-    score = random.randrange(50,150)
+    res = rd.hget('dajie',user_id)
+
+    #c = dajie.get(user_id,'')
+    #cc = datetime.now().strftime('%Y-%m-%d')
+    #if not c:
+    #    c = [cc,1]
+    #    dajie[user_id] = c
+    #else:
+    #    if c[0] == cc:
+    #        if c[1] >= 2 and (not res) and user_id != 736209298:
+    #            return
+    #        else:
+    #            dajie[user_id] = [cc,c[1]+1]
+    #    else:
+    #        c = [cc,1]
+    #        dajie[user_id] = c
+
+    score = random.randrange(50,100)
+
     if int(qq) == session.ctx['user_id']:
         return
-    if random.choice([0,1]):
+    count = rd.hget('fantan',qq)
+    pat = [0,1,0]
+    
+    if count and res:
+        await session.send('你有打劫卡，他有反弹卡\n蕾姆很为难的说，换其他人吧')
+        return
+    if count:
+        pat = [1]
+    if res:
+        pat = [1]
+    if random.choice(pat):
         p2 = select_db_score(session.ctx['user_id'],session.ctx['group_id'])
         pcount = p2[1]
         #if pcount < 100:
@@ -2679,9 +2696,14 @@ async def fan(session: CommandSession):
         nickname = nickname if nickname else info.get('nickname')
         pcount1 = p[1]
         if pcount1 < 100:
-            await session.send('%s 余额为%s圣金币\n打劫穷人天理难容，明天再来吧' % (nickname, pcount1))
+            await session.send('%s 余额为%s圣金币\n打劫穷人天理难容，换个人吧' % (nickname, pcount1))
             return
-        count = rd.hget('fantan',qq)
+        if res:
+            if int(res) > 1:
+                res_count = int(res) - 1
+                rd.hset('dajie',user_id,res_count)
+            else:
+                rd.hdel('dajie',user_id)
         if count:
             cc = int(count) - 1
             if cc == 0:
@@ -2693,7 +2715,8 @@ async def fan(session: CommandSession):
             update_db_score(tscore, p[0])
             tscore2 = pcount - int(score)
             update_db_score(tscore2, p2[0])
-            await session.send('打劫失败！对方持有反弹卡\n你被反打劫%s圣金币！\n您的余额为%s圣金币\n%s 余额%s圣金币' % (score,tscore2,nickname, tscore))
+            rd.setex(user_id,12*60*60,1)
+            await session.send('打劫失败！对方持有反弹卡\n你被反打劫%s圣金币！并且被关监狱12小时！\n您的余额为%s圣金币\n%s 余额%s圣金币' % (score,tscore2,nickname, tscore))
             return
 
         tscore = pcount1 - int(score)
@@ -2703,12 +2726,14 @@ async def fan(session: CommandSession):
 
         await session.send('打劫成功%s圣金币！\n您的余额为%s圣金币\n%s 余额%s圣金币' % (score,tscore2,nickname, tscore))
     else:
-        await session.send('打劫失败，另外打劫一天一次请注意')
+        rd.setex(user_id,12*60*60,1)
+        await session.send('打劫失败，你被关入监狱，输入关押时长查看出狱时间。')
 
 ck = {} 
 jiahu = {}
 @on_command('抽卡', aliases=('抽卡'),only_to_me=False)
 async def huantou(session: CommandSession):
+    user_id = session.ctx['user_id']
     group_id = session.ctx['group_id']
     if group_id in [708061110]:
         return
@@ -2732,7 +2757,9 @@ async def huantou(session: CommandSession):
     if j == 0 and s == 0:
         await session.send(msg)
         return
-    ds = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,5]
+    ds = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,5]
+    if score < 500:
+        ds = [1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,5]
     c = ck.get(user_id,'')
     cc = datetime.now().strftime('%Y-%m-%d')
     if not c:
@@ -2740,7 +2767,7 @@ async def huantou(session: CommandSession):
         ck[user_id] = c
     else:
         if c[0] == cc:
-            if c[1] >= 20 and s == 0:
+            if c[1] >= 40 and s == 0:
                 return
             else:
                 ck[user_id] = [cc,c[1]+1]
@@ -2811,9 +2838,9 @@ async def huantou(session: CommandSession):
         return
     pic = random.choice(os.listdir('/home/pro_coolq/data/image/re0/%s' % d))
     name = pic.split('.')[0]
-    if d == 2 or d==3:
-        await session.send('%s\n%s' % (name,msg))
-        return
+    #if d == 2 or d==3:
+    #    await session.send('%s\n%s' % (name,msg))
+    #    return
 
     await session.send('%s[CQ:image,file=re0/%s/%s]%s' % (name,d, pic, msg))
 
@@ -2822,45 +2849,159 @@ async def fan(session: CommandSession):
     if session.ctx['raw_message'].strip() == '商店':
         msg = [
             '★加护(5块/1个)：\n输入"使用加护"，接下来的十次抽卡强运加持，总共可获得几百至上千不等的圣金币，并且无视限制，强制抽卡。',
-            '★死亡回溯(5块/1个)：\n先输入"存档"，记录现有圣金币数a，想回档的时候输入"使用死亡回溯"，即可回档至a圣金币。',
-            '★反弹卡(5块/10次)：\n被动道具，购买后会存入背包，当有人打劫你成功时，会反打劫对方相同数量的圣金币。'
+            #'★死亡回溯(5块/1个)：\n先输入"存档"，记录现有圣金币数a，想回档的时候输入"使用死亡回溯"，即可回档至a圣金币。',
+            '★反弹卡(1块/1个)：\n被动道具，购买后会存入背包，当有人打劫你成功时，会反打劫对方相同数量的圣金币。并且将对方关入监狱',
+            '★保释卡(5毛/1个)：\n直接保释@某人，保释自己的时候直接输入：保释自己，就可以出狱啦',
+            '★打劫卡(5毛/1个)：\n直接打劫@某人，会消耗一张打劫卡，成功率100%，并且没有次数限制。'
         ]
         t = '\n' + '可找主人736209298购买，资金用于服务器支持等费用'
         await session.send('\n'.join(msg) + t)
 
 @on_command('赠送',only_to_me=False)
 async def fan(session: CommandSession):
-    if session.ctx['user_id'] == 736209298:
+    qq = re.findall(r'\[CQ:at,qq=(\d+?)\]',session.ctx['raw_message'])
+    if qq:
+        qq = qq[0]
+    uid = session.ctx['user_id']
+    if uid == 736209298:
 
         if session.ctx['raw_message'].startswith('赠送加护'):
             qq, count = session.ctx['raw_message'].replace('赠送加护','').strip().split(' ')
             ret = rd.hget('jiahu',qq)
             if ret:
-                count = int(ret) + int(count)
+                ccount = int(ret) + int(count)
             else:
-                count = int(count)
-            rd.hset('jiahu',qq,count)
-            await session.send('恭喜%s获得莱茵哈鲁特的加护，可输入背包查看' % qq)
+                ccount = int(count)
+            rd.hset('jiahu',qq,ccount)
+            await session.send('恭喜%s获得莱茵哈鲁特的加护%s个，可输入背包查看' % (qq,count))
 
         elif session.ctx['raw_message'].startswith('赠送死亡回溯'):
             qq, count = session.ctx['raw_message'].replace('赠送死亡回溯','').strip().split(' ')
             ret = rd.hget('siwang',qq)
             if ret:
-                count = int(ret) + int(count)
+                ccount = int(ret) + int(count)
             else:
-                count = int(count)
-            rd.hset('siwang',qq,count)
+                ccount = int(count)
+            rd.hset('siwang',qq,ccount)
             await session.send('恭喜%s获得死亡回溯，可输入背包查看' % qq)
 
         elif session.ctx['raw_message'].startswith('赠送反弹卡'):
             qq, count = session.ctx['raw_message'].replace('赠送反弹卡','').strip().split(' ')
             ret = rd.hget('fantan',qq)
             if ret:
-                count = int(ret) + int(count)
+                ccount = int(ret) + int(count)
             else:
-                count = int(count)
-            rd.hset('fantan',qq,count)
+                ccount = int(count)
+            rd.hset('fantan',qq,ccount)
             await session.send('恭喜%s获得反弹卡%s张，可输入背包查看' % (qq,count))
+
+        elif session.ctx['raw_message'].startswith('赠送打劫卡'):
+            qq, count = session.ctx['raw_message'].replace('赠送打劫卡','').strip().split(' ')
+            ret = rd.hget('dajie',qq)
+            if ret:
+                ccount = int(ret) + int(count)
+            else:
+                ccount = int(count)
+            rd.hset('dajie',qq,ccount)
+            await session.send('恭喜%s获得打劫卡%s张，可输入背包查看' % (qq,count))
+
+        elif session.ctx['raw_message'].startswith('赠送保释卡'):
+            qq, count = session.ctx['raw_message'].replace('赠送保释卡','').strip().split(' ')
+            ret = rd.hget('baoshi',qq)
+            if ret:
+                ccount = int(ret) + int(count)
+            else:
+                ccount = int(count)
+            rd.hset('baoshi',qq,ccount)
+            await session.send('恭喜%s获得保释卡%s张，可输入背包查看' % (qq,count))
+    elif qq:
+        count = int(session.ctx['raw_message'].split(']')[-1].strip())
+
+        if session.ctx['raw_message'].startswith('赠送加护'):
+            ret = rd.hget('jiahu',uid)
+            if ret:
+                ccount = int(ret) - count
+                if ccount >= 0:
+                    if ccount == 0:
+                        rd.hdel('jiahu',uid)
+                    else:
+                        rd.hset('jiahu',uid,ccount)
+                    ret2 = rd.hget('jiahu',qq)
+                    if ret2:
+                        ccc = int(ret2) + int(count)
+                    else:
+                        ccc = int(count)
+                    rd.hset('jiahu',qq,ccc)
+                    await session.send('恭喜%s获得莱茵哈鲁特的加护%s个，可输入背包查看' % (qq,count))
+
+        elif session.ctx['raw_message'].startswith('赠送死亡回溯'):
+            ret = rd.hget('siwang',uid)
+            if ret:
+                ccount = int(ret) - count
+                if ccount >= 0:
+                    if ccount == 0:
+                        rd.hdel('siwang',uid)
+                    else:
+                        rd.hset('siwang',uid,ccount)
+                    ret2 = rd.hget('siwang',qq)
+                    if ret2:
+                        ccc = int(ret2) + int(count)
+                    else:
+                        ccc = int(count)
+                    rd.hset('siwang',qq,ccc)
+                    await session.send('恭喜%s获得死亡回溯，可输入背包查看' % qq)
+
+        elif session.ctx['raw_message'].startswith('赠送反弹卡'):
+            ret = rd.hget('fantan',uid)
+            if ret:
+                ccount = int(ret) - count
+                if ccount >= 0:
+                    if ccount == 0:
+                        rd.hdel('fantan',uid)
+                    else:
+                        rd.hset('fantan',uid,ccount)
+                    ret2 = rd.hget('fantan',qq)
+                    if ret2:
+                        ccc = int(ret2) + int(count)
+                    else:
+                        ccc = int(count)
+                    rd.hset('fantan',qq,ccc)
+                    await session.send('恭喜%s获得反弹卡%s张，可输入背包查看' % (qq,count))
+
+        elif session.ctx['raw_message'].startswith('赠送打劫卡'):
+            ret = rd.hget('dajie',uid)
+            if ret:
+                ccount = int(ret) - count
+                if ccount >= 0:
+                    if ccount == 0:
+                        rd.hdel('dajie',uid)
+                    else:
+                        rd.hset('dajie',uid,ccount)
+                    ret2 = rd.hget('dajie',qq)
+                    if ret2:
+                        ccc = int(ret2) + int(count)
+                    else:
+                        ccc = int(count)
+                    rd.hset('dajie',qq,ccc)
+                    await session.send('恭喜%s获得打劫卡%s张，可输入背包查看' % (qq,count))
+
+        elif session.ctx['raw_message'].startswith('赠送保释卡'):
+            ret = rd.hget('baoshi',uid)
+            if ret:
+                ccount = int(ret) - count
+                if ccount >= 0:
+                    if ccount == 0:
+                        rd.hdel('baoshi',uid)
+                    else:
+                        rd.hset('baoshi',uid,ccount)
+                    ret2 = rd.hget('baoshi',qq)
+                    if ret2:
+                        ccc = int(ret2) + int(count)
+                    else:
+                        ccc = int(count)
+                    rd.hset('baoshi',qq,ccc)
+                    await session.send('恭喜%s获得保释卡%s张，可输入背包查看' % (qq,count))
+
 
 @on_command('背包',only_to_me=False)
 async def fan(session: CommandSession):
@@ -2876,9 +3017,14 @@ async def fan(session: CommandSession):
         if str(qq) in rd.hkeys('fantan'):
             c = rd.hget('fantan',qq)
             msg += '\n' + '反弹卡（%s个）' % c
+        if str(qq) in rd.hkeys('dajie'):
+            c = rd.hget('dajie',qq)
+            msg += '\n' + '打劫卡（%s个）' % c
+        if str(qq) in rd.hkeys('baoshi'):
+            c = rd.hget('baoshi',qq)
+            msg += '\n' + '保释卡（%s个）' % c
         if msg == '您现有的道具如下：':
             return
-        rems = rd.hkeys('siwang')
         await session.send(msg)
 
 @on_command('存档',only_to_me=False)
@@ -2923,3 +3069,101 @@ async def fan(session: CommandSession):
             update_db_score(score,cid)
             rd.hdel('cundang',qq)
             await session.send('触发死亡回溯成功！\n已成功回档至%s圣金币！' % score)
+            return
+    elif session.ctx['raw_message'].startswith('使用大赦天下卡'):
+        c = rd.hget('dashe',qq)
+        if c:
+            if int(c) <= 1:
+                rd.hdel('dashe',qq)
+            else:
+                rd.hset('dashe',qq,int(c)-1)
+            rd.hdel('jianyu',session.ctx['group_id'])
+            await session.send('触发大赦天下成功！\n本群所有因打劫入狱的群员全部释放！')
+            return
+
+#@on_command('i监狱',only_to_me=False)
+#async def fan(session: CommandSession):
+#    qq = session.ctx['user_id']
+#    msg = '离释放小于12小时的犯人：'
+#    if session.ctx['raw_message'] == '监狱名单':
+#        for i in rd.keys():
+#            ttl = rd.ttl(i)
+#            if ttl > 0 and ttl < 43200:
+#                try:
+#                    info = await session.bot.get_group_member_info(group_id=session.ctx['group_id'],user_id=i)
+#                    nickname = info.get('card')
+#                    nickname = nickname if nickname else info.get('nickname')
+#                except:
+#                    continue
+#                msg += '\n%s：%.1f小时' % (nickname,ttl/3600) 
+#        await session.send(msg)
+
+@on_command('保释',only_to_me=False)
+async def fan(session: CommandSession):
+    try:
+        qq = re.findall(r'\[CQ:at,qq=(\d+?)\]',session.ctx['raw_message'])[0]
+    except:
+        pass
+    uid = session.ctx['user_id']
+    group_id = session.ctx['group_id']
+    if '自己' in session.ctx['raw_message']:
+        qq = uid
+    if session.ctx['raw_message'].startswith('保释'):
+        c = rd.hget('baoshi',uid)
+        if c:
+            if int(c) <= 1:
+                rd.hdel('baoshi',uid)
+            else:
+                rd.hset('baoshi',uid,int(c)-1)
+            rd.delete(qq)
+            info = await session.bot.get_group_member_info(group_id=session.ctx['group_id'],user_id=qq)
+            nickname = info.get('card')
+            nickname = nickname if nickname else info.get('nickname')
+
+            await session.send('保释成功！恭喜%s成功出狱！' % nickname)
+            return
+
+@on_command('关押',only_to_me=False)
+async def fan(session: CommandSession):
+    if session.ctx['raw_message'].startswith('关押时长'):
+        uid = session.ctx['user_id']
+        c = rd.get(uid)
+        if c:
+            ttl = rd.ttl(uid)
+            msg = '您离出狱还有%.2f小时\n输入商店可购买保释卡' % (ttl/3600)
+            await session.send(msg)
+
+@on_command('一起',only_to_me=False)
+async def huantou(session: CommandSession):
+    role = session.ctx['sender']['role']
+    if role == 'member':
+        return
+    if '一起听歌' not in session.ctx['raw_message']:
+        return
+    bot = nonebot.get_bot()
+    cookie = await bot.get_cookies()
+    cookie = str(cookie)
+    skey = re.findall(r"skey=(.+?)'",cookie)[0]
+    headers = {
+    'Cookie': 'uin=o0%s; skey=%s;' % (session.ctx['self_id'],skey.replace(';','')),
+    }
+    bkn = getBKN(skey)
+    ret = requests.get('https://web.qun.qq.com/cgi-bin/media/set_media_state?t=0.469486734896817&g_tk=%s&state=1&gcode=%s&qua=V1_AND_SQ_8.2.6_1320_YYB_D&uin=o0%s&format=json&inCharset=utf-8&outCharset=utf-8' % (bkn,session.ctx['group_id'],session.ctx['self_id']),headers=headers,timeout=3)
+
+@on_command('关闭',only_to_me=False)
+async def huantou(session: CommandSession):
+    role = session.ctx['sender']['role']
+    if role == 'member':
+        return
+    if '关闭听歌' not in session.ctx['raw_message']:
+        return
+    bot = nonebot.get_bot()
+    cookie = await bot.get_cookies()
+    skey = re.findall(r"skey=(.+?)'",str(cookie))[0]
+    headers = {
+    'Cookie': 'uin=o0%s; skey=%s;' % (session.ctx['self_id'],skey.replace(';','')),
+    }
+    bkn = getBKN(skey)
+    requests.get('https://web.qun.qq.com/cgi-bin/media/set_media_state?t=0.469486734896817&g_tk=%s&state=0&gcode=%s&qua=V1_AND_SQ_8.2.6_1320_YYB_D&uin=o0%s&format=json&inCharset=utf-8&outCharset=utf-8' % (bkn,session.ctx['group_id'],session.ctx['self_id']),headers=headers,timeout=3)
+
+
