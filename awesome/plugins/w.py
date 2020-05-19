@@ -1880,7 +1880,7 @@ async def fan(session: CommandSession):
         b = [
             '————蕾の卡牌————',
             '★商店：查看道具说明',
-            '★抽卡：目前不限次数',
+            '★抽卡：就是单抽啦',
             '★十连抽：考验欧气的时刻到了',
             '★打劫@某人：失败会进监狱',
             '★转账@某人：py交易',
@@ -1889,7 +1889,8 @@ async def fan(session: CommandSession):
             '★背包：查看自己拥有的道具',
             '★小本本：查看谁打劫了你',
             '★赠送保释卡@张三1，可以赠送道具',
-            '★讨伐白鲸：每次10人组团讨伐，可获得道具',
+            '★讨伐白鲸：每次10人组团讨伐，可获得奖励',
+            '★讨伐名单：查看成员',
             '————————————',
         ]
     elif '主人' in arg:
@@ -2215,12 +2216,12 @@ async def tuling(session: CommandSession):
         if sign_state == 0:
             r = random.choice([0,0,0,0,0,0,0,1])
             if r:
-                score = 100
+                score = 30
             else:
                 score = 30
             update_db_sign(uuid)
             if p:
-                if p[1] < 0:
+                if p[1] < 30:
                     score = 50
                 tscore = score+p[1]
                 update_db_score(tscore, p[0])
@@ -2229,10 +2230,7 @@ async def tuling(session: CommandSession):
                 insert_db_score(user_id,group_id,score)
             jinbi = [
                     '可以公开的情报：',
-                    '服务器负荷，抽卡',
-                    '每日20次概率增大',
-                    '测试群949377627',
-                    '群主就是蕾姆。',
+                    '抽卡每日20次',
                     ]
             count = select_sign_count(user_id,group_id)[0]
             if score != 10:
@@ -2321,6 +2319,7 @@ async def fan(session: CommandSession):
         nickname = info.get('card')
         nickname = nickname if nickname else info.get('nickname')
         await session.send('成功帮%s充值%s圣金币！' % (nickname, score))
+
 
 @on_command('转账',only_to_me=False)
 async def fan(session: CommandSession):
@@ -2600,10 +2599,10 @@ async def huantou(session: CommandSession):
             if tscore <= 800 and i==9:
                 ds = [399]
         else:
-            ds = ['a30','a30','a30','a30','a30','a30','a50','a50','a30','a30','a50','a50','a10','a10','a30','a30','a30','a30','a50','a50','a50','a50','a50',10,10,10,10,10,10,10,50,50,50,50,100,100]
+            ds = ['a30','a30','a30','a30','a30','a30','a50','a50','a30','a30','a50','a10','a10','a10','a10','a10','a30','a50','a50','a50','a50','a50',10,10,10,10,10,10,10,50,50,50,50,100,100,5]
         
         if tscore >= 1200:
-            ds = ['a10','a10','a10','a30','a30','a30','a30','a30','a30','a30','a30','a30','a30','a50','a50','a50','a50','a50','a30',10,10,10,10,10,10,10,10,50,50,50]
+            ds = ['a10','a10','a10','a30','a30','a30','a30','a30','a30','a30','a30','a50','a50','a50','a50','a50','a30','a30','a30','a30','a30','a30',10,10,10,10,10,10,10,10,50,50,50,100,100]
              
         d = random.choice(ds)
         if d == 5:
@@ -2645,6 +2644,7 @@ async def fan(session: CommandSession):
     gid = session.ctx['group_id']
     qq = re.findall(r'\[CQ:at,qq=(\d+?)\]',session.ctx['raw_message'])[0]
     res = rd.hget('dajie',user_id)
+    dj_time = datetime.now().strftime('%Y-%m-%d %H:%M')
 
     #c = dajie.get(user_id,'')
     #cc = datetime.now().strftime('%Y-%m-%d')
@@ -2666,7 +2666,9 @@ async def fan(session: CommandSession):
     if int(qq) == session.ctx['user_id']:
         return
     count = rd.hget('fantan',qq)
-    pat = [0,1]
+    p = select_db_score(qq,session.ctx['group_id'])
+    pcount1 = p[1]
+    pat = [0,0,1,1]
     
     if count and res:
         await session.send('你有打劫卡，他有反弹卡\n蕾姆很为难的说，换其他人吧')
@@ -2675,7 +2677,7 @@ async def fan(session: CommandSession):
         card = session.ctx['sender'].get('card','')
         nickname = card if card else session.ctx['sender'].get('nickname','')
         sing = '冲突'
-        msg = '%s（%s）:%s' % (nickname, user_id, sing)
+        msg = '%s\n%s（%s）:%s' % (dj_time, nickname, user_id, sing)
         if dj:
             dj_list = json.loads(dj)
             dj_list.insert(0, msg)
@@ -2694,12 +2696,10 @@ async def fan(session: CommandSession):
         #if pcount < 100:
         #    await session.send('您的余额为%s圣金币\n不足100无法使用打劫' % (p2[1]))
         #    return
-        p = select_db_score(qq,session.ctx['group_id'])
         bot = nonebot.get_bot()
         info = await bot.get_group_member_info(group_id=session.ctx['group_id'],user_id=qq)
         nickname = info.get('card')
         nickname = nickname if nickname else info.get('nickname')
-        pcount1 = p[1]
         if pcount1 < 100:
             await session.send('%s 余额为%s圣金币\n打劫穷人天理难容，换个人吧' % (nickname, pcount1))
             code = '%s%s' % (gid,qq)
@@ -2707,7 +2707,7 @@ async def fan(session: CommandSession):
             card = session.ctx['sender'].get('card','')
             nickname = card if card else session.ctx['sender'].get('nickname','')
             sing = '失败'
-            msg = '%s（%s）:%s' % (nickname, user_id, sing)
+            msg = '%s\n%s（%s）:%s' % (dj_time, nickname, user_id, sing)
             if dj:
                 dj_list = json.loads(dj)
                 dj_list.insert(0, msg)
@@ -2743,7 +2743,7 @@ async def fan(session: CommandSession):
             card = session.ctx['sender'].get('card','')
             nickname = card if card else session.ctx['sender'].get('nickname','')
             sing = '反弹'
-            msg = '%s（%s）:%s' % (nickname, user_id, sing)
+            msg = '%s\n%s（%s）:%s' % (dj_time, nickname, user_id, sing)
             if dj:
                 dj_list = json.loads(dj)
                 dj_list.insert(0, msg)
@@ -2764,7 +2764,7 @@ async def fan(session: CommandSession):
         card = session.ctx['sender'].get('card','')
         nickname = card if card else session.ctx['sender'].get('nickname','')
         sing = '成功'
-        msg = '%s（%s）:%s' % (nickname, user_id, sing)
+        msg = '%s\n%s（%s）:%s' % (dj_time, nickname, user_id, sing)
         if dj:
             dj_list = json.loads(dj)
             dj_list.insert(0, msg)
@@ -2780,7 +2780,7 @@ async def fan(session: CommandSession):
         card = session.ctx['sender'].get('card','')
         nickname = card if card else session.ctx['sender'].get('nickname','')
         sing = '失败'
-        msg = '%s（%s）:%s' % (nickname, user_id, sing)
+        msg = '%s\n%s（%s）:%s' % (dj_time, nickname, user_id, sing)
         if dj:
             dj_list = json.loads(dj)
             dj_list.insert(0, msg)
@@ -2818,7 +2818,7 @@ async def huantou(session: CommandSession):
     if j == 0 and (not s):
         await session.send(msg)
         return
-    ds = [1,1,1,1,1,1,1,1,2,2,3,3,4,4,5]
+    ds = [1,1,1,1,1,1,1,1,1,2,2,3,3,4,4,5]
     #if score < 500:
     #    ds = [1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,5]
     c = ck.get(user_id,'')
@@ -2845,8 +2845,8 @@ async def huantou(session: CommandSession):
     #    await session.send('真的要继续吗？下面可能是万丈深渊哦')
     #    return
     # 测试
-    if score > 800:
-        ds = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,3,3,3,4,4,4,4,5]
+    #if score > 100:
+    #    ds = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,3,3,3,4,4,4,4,5]
     if s:
         s = int(s)
         if s > 1:
@@ -3215,6 +3215,9 @@ async def fan(session: CommandSession):
             return     
         c = rd.hget('baoshi',uid)
         if c:
+            if not rd.get(qq):
+                await session.send('对方不在监狱内。')
+                return
             if int(c) <= 1:
                 rd.hdel('baoshi',uid)
             else:
@@ -3347,6 +3350,10 @@ async def huantou(session: CommandSession):
                 rd.hset('jinbi',uid,int(c)-1)
             rd.setex(qq,12*3600,1)
             await session.send('恭喜[CQ:at,qq=%s]成功入狱！' % qq)
+def jiangli(qq, gid, name):
+    p = select_db_score(qq,gid)
+    tscore = p[1] + name
+    update_db_score(tscore, p[0])
 
 def zengsong(qq, name):
     count = 1
@@ -3391,6 +3398,23 @@ def zengsong(qq, name):
 
 @on_command('讨伐',only_to_me=False)
 async def huantou(session: CommandSession):
+    if session.ctx['raw_message'].startswith('讨伐名单'):
+        gid = session.ctx['group_id']
+        bid = 'baijing%s' % gid
+        ret = rd.sinter(bid)
+        if ret:
+            tst = [x for x in ret]
+            msg = '本次白鲸讨伐队成员名单：'
+            for qq in tst:
+                try:
+                    info = await session.bot.get_group_member_info(group_id=gid,user_id=qq)
+                    nickname = info.get('card')
+                    nickname = nickname if nickname else info.get('nickname')
+                    nickname = nickname.replace('\n','')
+                except:
+                    nickname = qq
+                msg += '\n%s' % nickname
+            await session.send(msg)
     if not session.ctx['raw_message'].startswith('讨伐白鲸'):
         return
     uid = session.ctx['user_id']
@@ -3408,21 +3432,31 @@ async def huantou(session: CommandSession):
                 #bst5 = ['反弹卡','禁闭卡','保释卡','打劫卡','打劫卡','加护','加护','保释卡','打劫卡','反弹卡',]
                 #bst4 = ['禁闭卡','打劫卡','打劫卡','打劫卡','反弹卡','保释卡','保释卡','保释卡','打劫卡','反弹卡',]
                 #bst = random.choice([bst1,bst4,bst5, bst2,bst3,bst1]) 
-                bst = ['禁闭卡','打劫卡','打劫卡','加护','打劫卡','保释卡','保释卡','保释卡','保释卡','反弹卡',]
+                #bst = ['禁闭卡','打劫卡','打劫卡','加护','打劫卡','保释卡','保释卡','保释卡','保释卡','反弹卡',]
+                bst = [100, 200, 300, 400, 500, 50, 200, 50, 200, 1000]
                 random.shuffle(bst)
-                msg = '[CQ:image,file=re0/bj/success.jpg]讨伐白鲸成功！战利品如下：'
+                if '1662572451' in tst:
+                    num1 = random.choice([50,400,500,1000])
+                    rindex = tst.index('1662572451')
+                    num2 = bst[rindex]
+                    if num2 != num1:
+                        bst[bst.index(num1)] = num2
+                        bst[rindex] = num1
+                msg = '[CQ:image,file=re0/bj/success.jpg]讨伐白鲸成功！奖励如下：'
+                #msg = '[CQ:image,file=re0/bj/success.jpg]讨伐白鲸成功！战利品如下：'
                 for i in range(10):
                     qq = tst[i]
                     name = bst[i]
-                    zengsong(qq, name)
+                    #zengsong(qq, name)
+                    jiangli(qq, gid, name)
                     msg += '\n[CQ:at,qq=%s]：%s' % (qq, name)
                 rd.delete(bid)
             else:
                 msg = '[CQ:image,file=re0/bj/bj1.jpg]人数不足10人，无法开启讨伐白鲸任务：\n目前讨伐队成员：%s人\n"加入讨伐战"消耗300圣金币。' % count
         else:
-            msg = '[CQ:image,file=re0/bj/bj1.jpg]人数不足10人，无法开启讨伐白鲸任务：\n目前讨伐队成员：0人\n"加入讨伐战"消耗500圣金币。'
+            msg = '[CQ:image,file=re0/bj/bj1.jpg]人数不足10人，无法开启讨伐白鲸任务：\n目前讨伐队成员：0人\n"加入讨伐战"消耗300圣金币。'
     else:
-        msg = '参加讨伐白鲸任务消耗300金币，随机获得一个道具。您不是白鲸讨伐队成员，请输入"加入讨伐战"加入。'
+        msg = '参加讨伐白鲸任务消耗300金币，随机获得奖励。您不是白鲸讨伐队成员，请输入"加入讨伐战"加入。'
     await session.send(msg)
         
 @on_command('加入',only_to_me=False)
@@ -3451,3 +3485,4 @@ async def huantou(session: CommandSession):
             else:
                 msg = '[CQ:image,file=re0/bj/bj2.jpg]白鲸讨伐对人数已满10人，请战队成员输入"讨伐白鲸"。'
         await session.send(msg)
+
