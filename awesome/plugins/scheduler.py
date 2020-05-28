@@ -124,9 +124,8 @@ async def send_msg(msg,pic=None):
                 except:
                     pass
 
-@nonebot.scheduler.scheduled_job('interval', seconds=120)
+@nonebot.scheduler.scheduled_job('interval', seconds=60)
 async def _():
-    return
     items = requests.get('https://space.bilibili.com/ajax/member/getSubmitVideos?mid=928123&pagesize=3&tid=0&page=1&keyword=&order=pubdate').json()['data']['vlist']
 
     with open(r'/home/awesome-bot/bgm', 'r') as f:

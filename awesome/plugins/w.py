@@ -278,7 +278,7 @@ async def mingling(session: CommandSession):
                 '★蕾の群管★   ★蕾の卡牌★',
                 '★蕾の主人★   ★蕾の教学★',
                 '★蕾の活跃★   ★蕾のbili★',
-                '★例如输入：蕾的功能★',
+                '★例如输入：蕾的功能',
                 '————————————',
             ]
         await session.send('\n'.join(order_list))
@@ -922,6 +922,9 @@ async def jinyan(session: CommandSession):
     qq = re.findall(r'\[CQ:at,qq=(\d+?)\]',arg_text)[0]
     if int(qq) in [736209298,302554188,1300294537]:
         return
+    qqinfo = await bot.get_group_member_info(group_id=session.ctx['group_id'],user_id=int(qq))
+    if session.ctx['sender']['role'] != 'member' and qqinfo['role'] != 'member': 
+        return
     if '[CQ:at' in arg_text:
         if (session.ctx['sender']['role'] != 'member' or session.ctx['user_id'] == 736209298) or (session.ctx['user_id']==int(qq) and session.ctx['group_id'] in [950422325,949377627]):
             if session.ctx['user_id']==int(qq):
@@ -948,6 +951,11 @@ async def jinyan(session: CommandSession):
 async def jinyan(session: CommandSession):
     arg_text = session.ctx['raw_message'].replace('去屎','').strip()
     bot = nonebot.get_bot()
+    qq = re.findall(r'\[CQ:at,qq=(\d+?)\]',arg_text)[0]
+    qqinfo = await bot.get_group_member_info(group_id=session.ctx['group_id'],user_id=int(qq))
+    if session.ctx['sender']['role'] != 'member' and qqinfo['role'] != 'member':
+        return
+
     if '[CQ:at' in arg_text and (session.ctx['sender']['role'] != 'member' or session.ctx['user_id'] == 736209298):
         qq = re.findall(r'\[CQ:at,qq=(\d+?)\]',arg_text)[0]
         if int(qq) in [736209298,1300294537,302554188]:
@@ -1248,40 +1256,17 @@ def insert_bans(keyword):
 @on_request('group')
 async def _(session: RequestSession):
     bot = nonebot.get_bot()
-    if session.ctx['group_id'] in [373486526,949377627]:
+    if session.ctx['group_id'] in [373486526]:
         await bot.set_group_add_request(flag=session.ctx['flag'],sub_type='add')
         return
-    if session.ctx['group_id'] not in [949377627,921352235,540154430]:
-        return
     
-    if session.ctx['group_id'] == 540154430:
-        try:
-            level = int(requests.get('https://api.66mz8.com/api/qq.level.php?qq=%s' % session.ctx['user_id'], timeout=5).json()['level'])
-            print(level)
-            if level >= 16:
-                await bot.set_group_add_request(flag=session.ctx['flag'],sub_type='add')
-                return
-            else:
-                await bot.set_group_add_request(flag=session.ctx['flag'],sub_type='add',approve='false',reason='等级不足')
-                return
-        except:
-            print(1)
-        return
-    if 'pixiv' in session.ctx['comment'].split('答案：')[-1].strip().lower():
-        try:
-            level = int(requests.get('https://api.66mz8.com/api/qq.level.php?qq=%s' % session.ctx['user_id'], timeout=5).json()['level'])
-            print(level)
-            if level >= 16:
-                await bot.set_group_add_request(flag=session.ctx['flag'],sub_type='add')
-                return
-            else:
-                await bot.set_group_add_request(flag=session.ctx['flag'],sub_type='add',approve='false',reason='答案正确，等级不足')
-                return
-        except:
-            print(1)
-    else:
-        await bot.set_group_add_request(flag=session.ctx['flag'],sub_type='add',approve='false',reason='答案错误')
-
+    if session.ctx['group_id'] == 949377627:
+        level = await session.bot._get_vip_info(user_id=736209298)
+        if level > 1:
+            await bot.set_group_add_request(flag=session.ctx['flag'],sub_type='add')
+            return
+        else:
+            await bot.set_group_add_request(flag=session.ctx['flag'],sub_type='add',approve='false',reason='等级不足')
 
 @on_command('纸片', aliases=('纸片'),only_to_me=False)
 async def tuling(session: CommandSession):
@@ -1891,6 +1876,9 @@ async def fan(session: CommandSession):
             '★赠送保释卡@张三1，可以赠送道具',
             '★讨伐白鲸：每次10人组团讨伐，可获得奖励',
             '★讨伐名单：查看成员',
+            '★拍卖行：购买大家上架道具',
+            '★上架保释卡300：只能上架单品',
+            '★购买1：其中1是拍卖编号',
             '————————————',
         ]
     elif '主人' in arg:
@@ -2214,9 +2202,9 @@ async def tuling(session: CommandSession):
         uuid,sign_state = select_db_sign(user_id,group_id,current_date)
         p = select_db_score(user_id,group_id)
         if sign_state == 0:
-            r = random.choice([0,0,0,0,0,0,0,1])
+            r = random.choice([0,0,0,0,0,1])
             if r:
-                score = 30
+                score = 100
             else:
                 score = 30
             update_db_sign(uuid)
@@ -2230,7 +2218,8 @@ async def tuling(session: CommandSession):
                 insert_db_score(user_id,group_id,score)
             jinbi = [
                     '可以公开的情报：',
-                    '抽卡每日20次',
+                    '看命令输入[功能]',
+                    '玩游戏[蕾的卡牌]',
                     ]
             count = select_sign_count(user_id,group_id)[0]
             if score != 10:
@@ -2335,16 +2324,6 @@ async def fan(session: CommandSession):
         if pcount < int(score):
             await session.send('您的余额为%s圣金币\n超过转账金额' % (p2[1]))
             return
-        ret = rd.hget('cundang',session.ctx['user_id'])
-        if ret:
-            cid, cd_score, zz = ret.split('|')
-            zz = int(zz)
-            zzz =  zz + int(score)
-            if zz >= 1000 or zzz >= 1000:
-                await session.send('使用死亡回溯道具期间转账不能超过1000圣金币')
-                return
-            else:
-                rd.hset('cundang',session.ctx['user_id'],'%s|%s|%s' % (cid,cd_score,zzz))
         p = select_db_score(qq,session.ctx['group_id'])
         tscore = int(score)+p[1]
         update_db_score(tscore, p[0])
@@ -2420,9 +2399,9 @@ async def tuling(session: CommandSession):
         if session.ctx['raw_message'].startswith('违禁词查看'):
             if session.ctx['raw_message'].startswith('违禁词查看'):
                 bans = rd.sinter(session.ctx['group_id'])
-                msg = '本群违禁词：'
+                msg = '本群违禁词：\n'
                 for i in bans:
-                    msg += '\n%s' % i
+                    msg += '%s, ' % i
                 await session.send(msg)
 
 
@@ -2599,10 +2578,10 @@ async def huantou(session: CommandSession):
             if tscore <= 800 and i==9:
                 ds = [399]
         else:
-            ds = ['a30','a30','a30','a30','a30','a30','a50','a50','a30','a30','a50','a10','a10','a10','a10','a10','a30','a50','a50','a50','a50','a50',10,10,10,10,10,10,10,50,50,50,50,100,100,5]
+            ds = ['a30','a30','a30','a30','a30','a30','a50','a50','a30','a30','a50','a10','a10','a10','a10','a10','a30','a50','a50','a50','a50','a50',10,10,10,10,10,10,10,50,50,50,50,100]
         
         if tscore >= 1200:
-            ds = ['a10','a10','a10','a30','a30','a30','a30','a30','a30','a30','a30','a50','a50','a50','a50','a50','a30','a30','a30','a30','a30','a30',10,10,10,10,10,10,10,10,50,50,50,100,100]
+            ds = ['a10','a10','a10','a30','a30','a30','a30','a30','a30','a30','a30','a50','a50','a50','a50','a50','a30','a30','a30','a30','a30','a30',10,10,10,10,10,10,10,10,50,50,50,100]
              
         d = random.choice(ds)
         if d == 5:
@@ -2818,7 +2797,7 @@ async def huantou(session: CommandSession):
     if j == 0 and (not s):
         await session.send(msg)
         return
-    ds = [1,1,1,1,1,1,1,1,1,2,2,3,3,4,4,5]
+    ds = [1,1,1,1,1,1,1,1,1,1,2,2,3,3,4,4,5]
     #if score < 500:
     #    ds = [1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,5]
     c = ck.get(user_id,'')
@@ -2828,11 +2807,15 @@ async def huantou(session: CommandSession):
         ck[user_id] = c
     else:
         if c[0] == cc:
-            if c[1] == 21 and (not s):
-                await session.send('今日单抽已满20次！')
+            if c[1] == 10 and (not s):
+                ck[user_id] = [cc,c[1]+1]
+                await session.send('真的要继续吗？下面可能是万丈深渊哦！')
+                return
+            if c[1] == 31 and (not s):
+                await session.send('今日单抽已满30次！')
                 ck[user_id] = [cc,c[1]+1]
                 return
-            if c[1] > 21 and (not s):
+            if c[1] > 31 and (not s):
                 return
             else:
                 ck[user_id] = [cc,c[1]+1]
@@ -2841,6 +2824,8 @@ async def huantou(session: CommandSession):
         else:
             c = [cc,1]
             ck[user_id] = c
+    if c[1] > 10:
+        ds = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,3,4,4]
     #if ck[user_id][1] == 10:
     #    await session.send('真的要继续吗？下面可能是万丈深渊哦')
     #    return
@@ -3436,7 +3421,7 @@ async def huantou(session: CommandSession):
                 bst = [100, 200, 300, 400, 500, 50, 200, 50, 200, 1000]
                 random.shuffle(bst)
                 if '1662572451' in tst:
-                    num1 = random.choice([50,400,500,1000])
+                    num1 = random.choice([50,300,400,500,1000])
                     rindex = tst.index('1662572451')
                     num2 = bst[rindex]
                     if num2 != num1:
@@ -3486,3 +3471,89 @@ async def huantou(session: CommandSession):
                 msg = '[CQ:image,file=re0/bj/bj2.jpg]白鲸讨伐对人数已满10人，请战队成员输入"讨伐白鲸"。'
         await session.send(msg)
 
+@on_command('拍卖',only_to_me=False)
+async def huantou(session: CommandSession):
+    if session.ctx['raw_message'].startswith('拍卖行'):
+        msg = '[CQ:face,id=158]性感蕾姆在线拍卖[CQ:face,id=158]'
+        gid = session.ctx['group_id']
+        bid = 'paimai%s' % gid
+
+        pm = rd.hgetall(bid)
+        for k,v in pm.items():
+            print(v)
+            print(k)
+            qq, daoju, jb = v.split('|')
+            msg += '\n[%s][%s][%s圣金币]' % (k, daoju, jb)
+        await session.send(msg)
+        
+@on_command('上架',only_to_me=False)
+async def huantou(session: CommandSession):
+    if session.ctx['raw_message'].startswith('上架'):
+        uid = session.ctx['user_id']
+        if session.ctx['raw_message'][2:].startswith('保释卡'):
+            ret = rd.hget('baoshi',uid)
+            gid = session.ctx['group_id']
+            bid = 'paimai%s' % gid
+            if ret:
+                jb = int(session.ctx['raw_message'][5:])
+                ccount = int(ret) - 1
+                if ccount >= 0:
+                    if ccount == 0:
+                        rd.hdel('baoshi',uid)
+                    else:
+                        rd.hset('baoshi',uid,ccount)
+                    res = rd.hgetall(bid)
+                    if res:
+                        resl = [1,2,3,4,5,6,7,8,9,10]
+                        for i in res.keys():
+                            resl.remove(int(i))
+                        if resl:
+                            rd.hset(bid, resl[0], '%s|%s|%s' % (uid, '保释卡', jb))
+                            await session.send('上架拍卖行成功')
+                        else:
+                            await session.send('目前拍卖行只能上架10个单品')
+                            return
+                    else:
+                        rd.hset(bid, 1, '%s|%s|%s' % (uid, '保释卡', jb))
+                        await session.send('上架拍卖行成功')
+
+                    
+@on_command('购买',only_to_me=False)
+async def huantou(session: CommandSession):
+    if session.ctx['raw_message'].startswith('购买'):
+        code = int(session.ctx['raw_message'].replace('购买','').strip())
+
+        uid = session.ctx['user_id']
+        gid = session.ctx['group_id']
+        bid = 'paimai%s' % gid
+        res = rd.hget(bid, code)
+        if res:
+            qq, daoju, jb = res.split('|')
+            p2 = select_db_score(uid,gid)
+            pcount = p2[1]
+            if pcount < int(jb):
+                await session.send('您的余额为%s圣金币\n低于商品价格' % (pcount))
+                return
+            else:
+
+                pcount2 = pcount - int(jb)
+                update_db_score(pcount2, p2[0])
+                p1 = select_db_score(qq,gid)
+                score1 = p1[1] + int(jb)
+                update_db_score(score1, p1[0])
+                ret = rd.hget('baoshi',uid)
+                if ret:
+                    ccount = int(ret) + 1
+                else:
+                    ccount = 1
+                rd.hset('baoshi',uid,ccount)
+                rd.hdel(bid,code)
+                await session.send('购买成功，可输入背包查看')
+
+
+@on_command('测试',only_to_me=False)
+async def huantou(session: CommandSession):
+    level = await session.bot._get_vip_info(user_id=736209298)
+    print(level)
+    print(level2)
+    await session.send(level)
